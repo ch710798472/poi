@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:controller="com.test.excel.MyControl"
+          xmlns:fx="http://javafx.com/fxml"  prefHeight="400.0" prefWidth="600.0">
+    <children>
+
+        <Label fx:id="uploadProcess" layoutX="60.0" layoutY="100.0"></Label>
+
+        <Button fx:id="uploadMapExecel" layoutX="60.0" layoutY="150.0"
+                mnemonicParsing="false"  prefHeight="23.0"
+                prefWidth="120.0" text="upload config" />
+        <Button fx:id="uploadExecel" layoutX="60.0" layoutY="200.0"
+                mnemonicParsing="false"  prefHeight="23.0"
+                prefWidth="120.0" text="upload" />
+        <Button fx:id="downloadExecel" layoutX="60.0" layoutY="250.0"
+                mnemonicParsing="false"  prefHeight="23.0"
+                prefWidth="120.0" text="download" />
+    </children>
+</AnchorPane>
