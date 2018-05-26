@@ -1,6 +1,7 @@
 package com.test.excel.config;
 
 import com.test.excel.biz.ConfigExcelProcess;
+import com.test.excel.biz.ExecutorCsvProcess;
 import com.test.excel.biz.TransforExcelProcess;
 import com.test.excel.util.ItemGHMapUtils;
 import org.springframework.beans.factory.annotation.Autowire;
@@ -26,6 +27,11 @@ public class BeanConfig {
     @Bean(autowire = Autowire.BY_NAME)
     public ItemGHMapUtils itemGHMapUtils() {
         return new ItemGHMapUtils();
+    }
+
+    @Bean(autowire = Autowire.BY_NAME)
+    public ExecutorCsvProcess executorCsvProcess() {
+        return new ExecutorCsvProcess();
     }
 
 }

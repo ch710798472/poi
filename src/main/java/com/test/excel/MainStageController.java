@@ -1,11 +1,7 @@
 package com.test.excel;
 
-import com.alibaba.fastjson.JSON;
-import com.ch.test.poi.domain.RecordDO;
-import com.ch.test.poi.util.POIUtils;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.test.excel.biz.ConfigExcelProcess;
+import com.test.excel.biz.ExecutorCsvProcess;
 import com.test.excel.biz.TransforExcelProcess;
 import com.test.excel.config.BeanConfig;
 import com.test.excel.domain.ItemMapDO;
@@ -30,27 +26,9 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import javax.annotation.Resource;
-import java.beans.IntrospectionException;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
 
 /**
  * @author banmo
@@ -83,13 +61,17 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
 
         TransforExcelProcess transforExcelProcess = (TransforExcelProcess) ctx.getBeanFactory().getBean("transforExcelProcess");
         ConfigExcelProcess configExcelProcess = (ConfigExcelProcess) ctx.getBeanFactory().getBean("configExcelProcess");
+        ExecutorCsvProcess executorCsvProcess = (ExecutorCsvProcess) ctx.getBeanFactory().getBean("executorCsvProcess");
 
         RequestExc transforRequest = transforExcelProcess.buildRequest();
         RequestExc configRequest = configExcelProcess.buildRequest();
+        RequestExc executorCsvRequest = executorCsvProcess.buildRequest();
 
         upbutton.setOnAction(new EventHandler<ActionEvent>(){
             @Override
             public void handle(ActionEvent arg0) {
+                uploadProcess.setText("上传中...");
+                transforExcelProcess.setLogText(new StringBuilder(""));
                 FileChooser fileChooser = new FileChooser();
                 FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Excel files (*.xls, *.xlsx, *.csv)", "*.xls", "*.xlsx", "*.csv");
                 fileChooser.getExtensionFilters().add(extFilter);
@@ -101,8 +83,9 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
                         transforRequest.setFis(fis);
                         transforRequest.setFileName(file.getName());
                         transforExcelProcess.execute(transforRequest);
-                        uploadProcess.setText("转化完成，请您开心的下载吧~~~啦啦啦");
+                        uploadProcess.setText(transforExcelProcess.getLogText().append("转化完成，请您开心的下载吧~~~啦啦啦").toString());
                     } catch (Exception e) {
+                        uploadProcess.setText(transforExcelProcess.getLogText().append(ExceptionUtils.getStackTrace(e)).toString());
                         logger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
                     }
                 }
@@ -114,6 +97,7 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
         dwbutton.setOnAction(new EventHandler<ActionEvent>(){
             @Override
             public void handle(ActionEvent arg0) {
+                uploadProcess.setText("下载中...");
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("颤抖吧！！！");
                 File file = fileChooser.showSaveDialog(primaryStage);
@@ -129,6 +113,7 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
         uploadMapButton.setOnAction(new EventHandler<ActionEvent>(){
             @Override
             public void handle(ActionEvent arg0) {
+                uploadProcess.setText("上传中...");
                 FileChooser fileChooser = new FileChooser();
                 FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Excel files (*.xls, *.xlsx)", "*.xls", "*.xlsx");
                 fileChooser.getExtensionFilters().add(extFilter);
@@ -141,6 +126,33 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
                         configRequest.setFileName(file.getName());
                         configExcelProcess.execute(configRequest);
                         uploadProcess.setText("上传配置信息成功，万事俱备只欠东风了，加油+++");
+                    } catch (Exception e) {
+                        logger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
+                    }
+                }
+                System.out.println(file);
+
+            }
+        });
+
+        Button executorCSV = (Button)root.lookup("#executorCSV");
+        executorCSV.setOnAction(new EventHandler<ActionEvent>(){
+            @Override
+            public void handle(ActionEvent arg0) {
+                uploadProcess.setText("上传中...");
+                FileChooser fileChooser = new FileChooser();
+                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Excel files (*.csv)", "*.csv");
+                fileChooser.getExtensionFilters().add(extFilter);
+                File file = fileChooser.showOpenDialog(primaryStage);
+
+                if (null != file) {
+                    try {
+                        BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
+                        executorCsvRequest.setFis(fis);
+                        executorCsvRequest.setFileName(file.getName());
+                        executorCsvRequest.setDownloadDir(file.getParent());
+                        executorCsvProcess.execute(executorCsvRequest);
+                        uploadProcess.setText("处理成功，请上传配置文件+++");
                     } catch (Exception e) {
                         logger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
                     }

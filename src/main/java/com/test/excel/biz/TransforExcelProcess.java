@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 public class TransforExcelProcess extends AbstractProcess {
     private static final Logger logger = LoggerFactory.getLogger(TransforExcelProcess.class);
 
+    private StringBuilder logText = new StringBuilder();
+
     @Autowired
     private ItemGHMapUtils itemGHMapUtils;
 
@@ -47,6 +49,7 @@ public class TransforExcelProcess extends AbstractProcess {
         try {
             list = POIUtils.convert2List(request.getFis(), BaseItemDO.class, BaseColNameEnum.getBaseFieldMapStr(), request.getFileName());
         } catch (Exception e) {
+            logText.append("Exception=").append(ExceptionUtils.getStackTrace(e));
             logger.error(ExceptionUtils.getStackTrace(e));
         }
 
@@ -172,6 +175,7 @@ public class TransforExcelProcess extends AbstractProcess {
 
         ConfigDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(tmp.getItemBarCode()));
         if (null == configDO) {
+            logText.append("itemName=").append(tmp.getItemName()).append("itemBarCode=").append(tmp.getItemBarCode() + "\r\n");
             logger.error("itemName={},itemBarCode={}", tmp.getItemName(), tmp.getItemBarCode());
             return;
         }
@@ -192,6 +196,7 @@ public class TransforExcelProcess extends AbstractProcess {
                 fileOutputStream.close();
             }
         } catch (Exception e) {
+            logText.append("Exception=").append(ExceptionUtils.getStackTrace(e));
             logger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
         }
     }
@@ -215,6 +220,7 @@ public class TransforExcelProcess extends AbstractProcess {
 
         ConfigDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(transItemDO.getItemBarCode()));
         if (null == configDO) {
+            logText.append("itemName=").append(baseItemDO.getItemName()).append("itemBarCode=").append(baseItemDO.getItemBarCode() + "\r\n");
             logger.error("itemName={},itemBarCode={}", baseItemDO.getItemName(), baseItemDO.getItemBarCode());
             return null;
         }
@@ -224,4 +230,11 @@ public class TransforExcelProcess extends AbstractProcess {
         return transItemDO;
     }
 
+    public StringBuilder getLogText() {
+        return logText;
+    }
+
+    public void setLogText(StringBuilder logText) {
+        this.logText = logText;
+    }
 }
