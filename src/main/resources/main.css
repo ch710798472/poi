@@ -1,0 +1,40 @@
+
+.button{
+
+    -fx-text-fill: #006464;
+
+    -fx-background-color: #DFB951;
+
+    -fx-border-radius: 20;
+
+    -fx-background-radius: 20;
+
+    -fx-padding: 5;
+
+}
+.button:hover {
+    -fx-background-color: lightskyblue;
+}
+
+#downloadExecel{
+    -fx-background-color: slateblue; -fx-text-fill: white;
+}
+#downloadExecel:hover{
+    -fx-background-color: lightskyblue;
+}
+#uploadProcess{
+    -fx-text-fill: red;
+}
+.root{
+
+     -fx-font-size: 10pt;
+
+     -fx-font-family: "Courier New";
+
+     -fx-base: rgb(132, 145, 47);
+
+     -fx-background: rgb(225, 228, 203);
+
+    -fx-background-image: url("icon.png");
+
+}

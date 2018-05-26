@@ -48,7 +48,9 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
         doSomeThing(primaryStage, root);
 
         primaryStage.setTitle("nuonuo专用Excel转换器");
-        primaryStage.setScene(new Scene(root, 800, 500));
+        Scene scene = new Scene(root, 800, 500);
+        scene.getStylesheets().add(getClass().getResource("/main.css").toString());
+        primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image(getClass().getResource("/icon.png").toString(), 100, 150, false, false));
         primaryStage.show();
     }
