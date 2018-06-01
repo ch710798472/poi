@@ -208,7 +208,7 @@ public class TransforExcelProcess extends AbstractProcess {
         transItemDO.setItemType(baseItemDO.getItemType());
         transItemDO.setItemUnit(baseItemDO.getItemUnit());
         transItemDO.setItemNum(baseItemDO.getItemNum());
-        transItemDO.setItemTax(baseItemDO.getItemTax());
+        //transItemDO.setItemTax(baseItemDO.getItemTax());
         transItemDO.setItemPrice(baseItemDO.getItemPrice());
         transItemDO.setItemAmount(baseItemDO.getItemAmount());
         transItemDO.setItemBuyTax(baseItemDO.getItemBuyTax());
@@ -216,7 +216,7 @@ public class TransforExcelProcess extends AbstractProcess {
 
         transItemDO.setItemTaxAmount(TaxUtils.getTaxAmount(baseItemDO.getItemTax(), baseItemDO.getItemAmount()));
         transItemDO.setItemAmountWithoutTax(TaxUtils.getItemAmountWithoutTax(baseItemDO.getItemAmount(),transItemDO.getItemTaxAmount()));
-        transItemDO.setItemPriceWithoutTax(TaxUtils.getItemPriceWithoutTax(baseItemDO.getItemAmount(), baseItemDO.getItemNum()));
+        transItemDO.setItemPriceWithoutTax(TaxUtils.getItemPriceWithoutTax(transItemDO.getItemAmountWithoutTax(), baseItemDO.getItemNum()));
 
         ConfigDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(transItemDO.getItemBarCode()));
         if (null == configDO) {
@@ -224,8 +224,11 @@ public class TransforExcelProcess extends AbstractProcess {
             logger.error("itemName={},itemBarCode={}", baseItemDO.getItemName(), baseItemDO.getItemBarCode());
             return null;
         }
+        transItemDO.setItemTax("16%");
         transItemDO.setItemGroup(configDO.getItemGroup());
         transItemDO.setItemTaxCode(configDO.getItemTaxCode());
+        transItemDO.setItemType(configDO.getItemType());
+        transItemDO.setItemUnit(configDO.getItemUnit());
 
         return transItemDO;
     }
