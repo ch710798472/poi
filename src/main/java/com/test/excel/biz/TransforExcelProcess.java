@@ -110,7 +110,7 @@ public class TransforExcelProcess extends AbstractProcess {
                 BigDecimal bdaddNum = new BigDecimal(transItemDO.getItemNum());
                 tmp.setItemNum(bdtmpNum.add(bdaddNum).toString());
                 tmp.setItemTaxAmount(TaxUtils.getTaxAmount(tmp.getItemTax(), tmp.getItemAmount()));
-                tmp.setItemAmountWithoutTax(TaxUtils.getItemAmountWithoutTax(tmp.getItemAmount(),transItemDO.getItemTaxAmount()));
+                tmp.setItemAmountWithoutTax(TaxUtils.getItemAmountWithoutTax(tmp.getItemAmount(),tmp.getItemTaxAmount()));
                 tmp.setItemPriceWithoutTax(TaxUtils.getItemPriceWithoutTax(tmp.getItemAmountWithoutTax(), tmp.getItemNum()));
             } else {
                 transItemDOMap.put(transItemDO.getItemBarCode(), transItemDO);
