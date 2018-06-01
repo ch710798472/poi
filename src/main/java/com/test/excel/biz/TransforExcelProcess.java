@@ -4,6 +4,7 @@ package com.test.excel.biz;
 import com.alibaba.fastjson.JSON;
 import com.ch.test.poi.util.POIUtils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.test.excel.domain.*;
 import com.test.excel.util.FileUtils;
 import com.test.excel.constans.BaseColNameEnum;
@@ -18,13 +19,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
+import javax.swing.text.html.parser.Entity;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +96,33 @@ public class TransforExcelProcess extends AbstractProcess {
         baseItemDOS.forEach(baseItemDO -> {
             transItemDOS.add(transforBuildTransItemDO(baseItemDO));
         });
-        request.setTmp(transItemDOS);
+
+        //数据透视
+        Map<String, TransItemDO> transItemDOMap = Maps.newHashMap();
+        transItemDOS.forEach(transItemDO -> {
+            if(null != transItemDOMap.get(transItemDO.getItemBarCode())) {
+                TransItemDO tmp = transItemDOMap.get(transItemDO.getItemBarCode());
+                BigDecimal bdtmpAmount = new BigDecimal(tmp.getItemAmount());
+                BigDecimal bdaddAmount = new BigDecimal(transItemDO.getItemAmount());
+                tmp.setItemAmount(bdtmpAmount.add(bdaddAmount).toString());
+
+                BigDecimal bdtmpNum = new BigDecimal(tmp.getItemNum());
+                BigDecimal bdaddNum = new BigDecimal(transItemDO.getItemNum());
+                tmp.setItemNum(bdtmpNum.add(bdaddNum).toString());
+                tmp.setItemTaxAmount(TaxUtils.getTaxAmount(tmp.getItemTax(), tmp.getItemAmount()));
+                tmp.setItemAmountWithoutTax(TaxUtils.getItemAmountWithoutTax(tmp.getItemAmount(),transItemDO.getItemTaxAmount()));
+                tmp.setItemPriceWithoutTax(TaxUtils.getItemPriceWithoutTax(tmp.getItemAmountWithoutTax(), tmp.getItemNum()));
+            } else {
+                transItemDOMap.put(transItemDO.getItemBarCode(), transItemDO);
+            }
+        });
+
+        List<TransItemDO> resultTransItemDOS = Lists.newArrayList();
+        for (Map.Entry<String, TransItemDO> m: transItemDOMap.entrySet()) {
+            resultTransItemDOS.add(m.getValue());
+        }
+
+        request.setTmp(resultTransItemDOS);
 
     }
 
@@ -101,6 +132,14 @@ public class TransforExcelProcess extends AbstractProcess {
         List<List<TransItemDO>> splitTmp = Lists.newArrayList();
         int splitNum = 0;
         int i_start = 0;
+        Collections.sort(tmp, new Comparator<TransItemDO>() {
+            @Override
+            public int compare(TransItemDO s1, TransItemDO s2) {
+                BigDecimal bd1 = new BigDecimal(s1.getItemAmount());
+                BigDecimal bd2 = new BigDecimal(s2.getItemAmount());
+                return bd1.compareTo(bd2);
+            }
+        });
         BigDecimal maxAmountOfOne = BigDecimal.valueOf(115999L);
         BigDecimal tmpAmount = BigDecimal.ZERO;
         for (int i = 0; i < tmp.size(); i++) {
