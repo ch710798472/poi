@@ -12,5 +12,6 @@
         <Button fx:id="uploadExecel" layoutX="60.0" layoutY="100.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="200.0" text="上传需要转化的文件" />
         <Button fx:id="downloadExecel" layoutX="60.0" layoutY="150.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="200.0" text="下载转化好的文件" />
         <Label fx:id="uploadProcess" layoutX="60.0" layoutY="200.0" />
+        <Label fx:id="uploadProcessMsg" layoutX="300.0" layoutY="100.0" />
     </children>
 </AnchorPane>

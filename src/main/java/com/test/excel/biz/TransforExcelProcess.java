@@ -1,6 +1,5 @@
 package com.test.excel.biz;
 
-
 import com.alibaba.fastjson.JSON;
 import com.ch.test.poi.util.POIUtils;
 import com.google.common.collect.Lists;
@@ -11,6 +10,7 @@ import com.test.excel.constans.BaseColNameEnum;
 import com.test.excel.constans.TargetColNameEnum;
 import com.test.excel.process.AbstractProcess;
 import com.test.excel.util.ItemGHMapUtils;
+import com.test.excel.util.NuoNuoStringUtils;
 import com.test.excel.util.TaxUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -26,10 +26,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +49,8 @@ public class TransforExcelProcess extends AbstractProcess {
 
         List<BaseItemDO> list = null;
         try {
-            list = POIUtils.convert2List(request.getFis(), BaseItemDO.class, BaseColNameEnum.getBaseFieldMapStr(), request.getFileName());
+            list = POIUtils.convert2List(request.getFis(), BaseItemDO.class, BaseColNameEnum.getBaseFieldMapStr(),
+                request.getFileName());
         } catch (Exception e) {
             logText.append("Exception=").append(ExceptionUtils.getStackTrace(e));
             logger.error(ExceptionUtils.getStackTrace(e));
@@ -81,7 +79,7 @@ public class TransforExcelProcess extends AbstractProcess {
     @Override
     public void upload(RequestExc request) {
         // csv
-        if ("csv".equals(FileUtils.getFileType(request))){
+        if ("csv".equals(FileUtils.getFileType(request))) {
             FileUtils.read(request);
         }
     }
@@ -89,7 +87,8 @@ public class TransforExcelProcess extends AbstractProcess {
     @Override
     public void transfor(RequestExc request) {
         List<BaseItemDO> baseItemDOS = request.getBase();
-        List<TransItemDO> transItemDOS =  Lists.newArrayList();;
+        List<TransItemDO> transItemDOS = Lists.newArrayList();
+        ;
         if (CollectionUtils.isEmpty(baseItemDOS)) {
             return;
         }
@@ -100,7 +99,7 @@ public class TransforExcelProcess extends AbstractProcess {
         //数据透视
         Map<String, TransItemDO> transItemDOMap = Maps.newHashMap();
         transItemDOS.forEach(transItemDO -> {
-            if(null != transItemDOMap.get(transItemDO.getItemBarCode())) {
+            if (null != transItemDOMap.get(transItemDO.getItemBarCode())) {
                 TransItemDO tmp = transItemDOMap.get(transItemDO.getItemBarCode());
                 BigDecimal bdtmpAmount = new BigDecimal(tmp.getItemAmount());
                 BigDecimal bdaddAmount = new BigDecimal(transItemDO.getItemAmount());
@@ -110,15 +109,17 @@ public class TransforExcelProcess extends AbstractProcess {
                 BigDecimal bdaddNum = new BigDecimal(transItemDO.getItemNum());
                 tmp.setItemNum(bdtmpNum.add(bdaddNum).toString());
                 tmp.setItemTaxAmount(TaxUtils.getTaxAmount(tmp.getItemTax(), tmp.getItemAmount()));
-                tmp.setItemAmountWithoutTax(TaxUtils.getItemAmountWithoutTax(tmp.getItemAmount(),tmp.getItemTaxAmount()));
-                tmp.setItemPriceWithoutTax(TaxUtils.getItemPriceWithoutTax(tmp.getItemAmountWithoutTax(), tmp.getItemNum()));
+                tmp.setItemAmountWithoutTax(
+                    TaxUtils.getItemAmountWithoutTax(tmp.getItemAmount(), tmp.getItemTaxAmount()));
+                tmp.setItemPriceWithoutTax(
+                    TaxUtils.getItemPriceWithoutTax(tmp.getItemAmountWithoutTax(), tmp.getItemNum()));
             } else {
                 transItemDOMap.put(transItemDO.getItemBarCode(), transItemDO);
             }
         });
 
         List<TransItemDO> resultTransItemDOS = Lists.newArrayList();
-        for (Map.Entry<String, TransItemDO> m: transItemDOMap.entrySet()) {
+        for (Map.Entry<String, TransItemDO> m : transItemDOMap.entrySet()) {
             resultTransItemDOS.add(m.getValue());
         }
 
@@ -154,7 +155,7 @@ public class TransforExcelProcess extends AbstractProcess {
             }
         }
 
-        if( i_start <= tmp.size()) {
+        if (i_start <= tmp.size()) {
             List<TransItemDO> tmp_i = Lists.newArrayList();
             tmp_i.addAll(tmp.subList(i_start, tmp.size()));
             splitTmp.add(tmp_i);
@@ -162,6 +163,7 @@ public class TransforExcelProcess extends AbstractProcess {
 
         if (!CollectionUtils.isEmpty(splitTmp)) {
             request.setSplitTmp(splitTmp);
+            setSpiltTotalAmount(request);
         }
     }
 
@@ -173,8 +175,8 @@ public class TransforExcelProcess extends AbstractProcess {
         }
         String fileName = request.getFileName();
         String newFileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".xlsx";
-        for (int i = 0; i < request.getSplitTmp().size();i++) {
-            List<TransItemDO> l = (List<TransItemDO>) request.getSplitTmp().get(i);
+        for (int i = 0; i < request.getSplitTmp().size(); i++) {
+            List<TransItemDO> l = (List<TransItemDO>)request.getSplitTmp().get(i);
             List<TargetItemDO> result = Lists.newArrayList();
             for (int j = 0; j < l.size(); j++) {
                 result.add(downloadTransfor(l.get(j), j + 1));
@@ -214,7 +216,8 @@ public class TransforExcelProcess extends AbstractProcess {
 
         ConfigDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(tmp.getItemBarCode()));
         if (null == configDO) {
-            logText.append("itemName=").append(tmp.getItemName()).append("itemBarCode=").append(tmp.getItemBarCode() + "\r\n");
+            logText.append("itemName=").append(tmp.getItemName()).append("itemBarCode=").append(
+                tmp.getItemBarCode() + "\r\n");
             logger.error("itemName={},itemBarCode={}", tmp.getItemName(), tmp.getItemBarCode());
             return;
         }
@@ -223,14 +226,15 @@ public class TransforExcelProcess extends AbstractProcess {
 
     private void saveFiles(List<TargetItemDO> tmp, File file) {
         try {
-            byte[] outputByte = POIUtils.convert2Excel(tmp, TargetItemDO.class, TargetColNameEnum.getTargetFieldMapStr());
-            if(file != null){
+            byte[] outputByte = POIUtils.convert2Excel(tmp, TargetItemDO.class,
+                TargetColNameEnum.getTargetFieldMapStr());
+            if (file != null) {
                 InputStream fi = new ByteArrayInputStream(outputByte);
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 byte[] bytes = new byte[1024];
                 int byteLength = 0;
-                while((byteLength = fi.read(bytes)) != -1){
-                    fileOutputStream.write(bytes,0,byteLength);
+                while ((byteLength = fi.read(bytes)) != -1) {
+                    fileOutputStream.write(bytes, 0, byteLength);
                 }
                 fileOutputStream.close();
             }
@@ -254,12 +258,15 @@ public class TransforExcelProcess extends AbstractProcess {
         transItemDO.setItemSalesTax(baseItemDO.getItemSalesTax());
 
         transItemDO.setItemTaxAmount(TaxUtils.getTaxAmount(baseItemDO.getItemTax(), baseItemDO.getItemAmount()));
-        transItemDO.setItemAmountWithoutTax(TaxUtils.getItemAmountWithoutTax(baseItemDO.getItemAmount(),transItemDO.getItemTaxAmount()));
-        transItemDO.setItemPriceWithoutTax(TaxUtils.getItemPriceWithoutTax(transItemDO.getItemAmountWithoutTax(), baseItemDO.getItemNum()));
+        transItemDO.setItemAmountWithoutTax(
+            TaxUtils.getItemAmountWithoutTax(baseItemDO.getItemAmount(), transItemDO.getItemTaxAmount()));
+        transItemDO.setItemPriceWithoutTax(
+            TaxUtils.getItemPriceWithoutTax(transItemDO.getItemAmountWithoutTax(), baseItemDO.getItemNum()));
 
         ConfigDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(transItemDO.getItemBarCode()));
         if (null == configDO) {
-            logText.append("itemName=").append(baseItemDO.getItemName()).append("itemBarCode=").append(baseItemDO.getItemBarCode() + "\r\n");
+            logText.append("itemName=").append(baseItemDO.getItemName()).append("itemBarCode=").append(
+                baseItemDO.getItemBarCode() + "\r\n");
             logger.error("itemName={},itemBarCode={}", baseItemDO.getItemName(), baseItemDO.getItemBarCode());
             return null;
         }
@@ -278,5 +285,59 @@ public class TransforExcelProcess extends AbstractProcess {
 
     public void setLogText(StringBuilder logText) {
         this.logText = logText;
+    }
+
+    private void setSpiltTotalAmount(RequestExc request) {
+        List<List<TransItemDO>> split = request.getSplitTmp();
+        List<String> msgList = Lists.newArrayList();
+        BigDecimal amountTotal = BigDecimal.ZERO;
+        BigDecimal taxTotal = BigDecimal.ZERO;
+        BigDecimal amountWithoutTaxTotal = BigDecimal.ZERO;
+        for (List<TransItemDO> transItemDOS : split) {
+            String msg = "";
+            BigDecimal amount = BigDecimal.ZERO;
+            BigDecimal tax = BigDecimal.ZERO;
+            BigDecimal amountWithoutTax = BigDecimal.ZERO;
+            for (TransItemDO transItemDO : transItemDOS) {
+                amount = amount.add(TaxUtils.add(transItemDO.getItemAmount()));
+                tax = tax.add(TaxUtils.add(transItemDO.getItemTaxAmount()));
+                amountWithoutTax = amountWithoutTax.add(TaxUtils.add(transItemDO.getItemAmountWithoutTax()));
+            }
+            msg += "金额：" + amount + "，税额：" + tax + "，不含税金额：" + amountWithoutTax + "\r\n";
+            amountTotal = amountTotal.add(amount);
+            taxTotal = taxTotal.add(tax);
+            amountWithoutTaxTotal = amountWithoutTaxTotal.add(amountWithoutTax);
+            msgList.add(msg);
+        }
+        String msg = "";
+        msg += "总金额：" + amountTotal + "，总税额：" + taxTotal + "，总不含税金额：" + amountWithoutTaxTotal + "\r\n";
+        msgList.add(msg);
+        request.addParams("splitMsg", NuoNuoStringUtils.getLabelString(msgList));
+
+        List<BaseItemDO> base = request.getBase();
+        String baseMsg = "";
+        BigDecimal baseAmountTotal = BigDecimal.ZERO;
+
+        BigDecimal baseAmountWithoutTaxTotal = BigDecimal.ZERO;
+        for (BaseItemDO baseItemDO : base) {
+            baseAmountTotal = baseAmountTotal.add(TaxUtils.add(baseItemDO.getItemAmount()));
+        }
+        BigDecimal baseTaxTotal = new BigDecimal(TaxUtils.getTaxAmount("0.16%", baseAmountTotal.toString()));
+        baseMsg += "原始金额：" + baseAmountTotal + "，原始税额：" + baseTaxTotal + "，原始不含税金额：" + TaxUtils.getItemAmountWithoutTax(
+            baseAmountTotal.toString(), baseTaxTotal.toString()) + "\r\n";
+        String checkMsg = "";
+        if (baseAmountTotal.subtract(amountTotal).abs().compareTo(BigDecimal.valueOf(TaxUtils.EXP)) > 0) {
+            checkMsg += "总金额校验失败，大于" + TaxUtils.EXP;
+        } else {
+            checkMsg += "总金额校验成功";
+        }
+        if (baseTaxTotal.subtract(taxTotal).abs().compareTo(BigDecimal.valueOf(TaxUtils.EXP)) > 0) {
+            checkMsg += "，总税费校验失败，大于" + TaxUtils.EXP;
+        } else {
+            checkMsg += "，总税费校验成功";
+        }
+        checkMsg += "\r\n";
+
+        request.addParams("baseMsg", baseMsg + checkMsg);
     }
 }

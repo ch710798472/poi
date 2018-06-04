@@ -28,7 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import java.io.*;
-
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author banmo
@@ -60,6 +61,7 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
         Button upbutton = (Button)root.lookup("#uploadExecel");
         Label uploadProcess = (Label)root.lookup("#uploadProcess");
         TextField uploadInfo = (TextField)root.lookup("#uploadInfo");
+        Label uploadProcessMsg = (Label)root.lookup("#uploadProcessMsg");
 
         TransforExcelProcess transforExcelProcess = (TransforExcelProcess) ctx.getBeanFactory().getBean("transforExcelProcess");
         ConfigExcelProcess configExcelProcess = (ConfigExcelProcess) ctx.getBeanFactory().getBean("configExcelProcess");
@@ -86,6 +88,9 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
                         transforRequest.setFileName(file.getName());
                         transforExcelProcess.execute(transforRequest);
                         uploadProcess.setText(transforExcelProcess.getLogText().append("转化完成，请您开心的下载吧~~~啦啦啦").toString());
+                        String msg = (String)Optional.ofNullable(transforRequest.getParams()).map(x->x.get("splitMsg")).orElse("");
+                        msg += (String)Optional.ofNullable(transforRequest.getParams()).map(x->x.get("baseMsg")).orElse("");
+                        uploadProcessMsg.setText(msg);
                     } catch (Exception e) {
                         uploadProcess.setText(transforExcelProcess.getLogText().append(ExceptionUtils.getStackTrace(e)).toString());
                         logger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));

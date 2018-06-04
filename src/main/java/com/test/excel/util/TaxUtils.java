@@ -10,6 +10,7 @@ import java.text.NumberFormat;
 public class TaxUtils {
     public static int TAX_ROUNDING_MODE = BigDecimal.ROUND_HALF_UP;
     public static int TAX_POINT = 8;
+    public static double EXP = 0.06f;
 
     public static String getTaxAmount(String taxRate, String amount) {
         BigDecimal amountBD = new BigDecimal(amount);
@@ -42,6 +43,12 @@ public class TaxUtils {
         }catch (Exception e) {
             return 0;
         }
+    }
+
+    public static BigDecimal add(String amount) {
+        BigDecimal amountBD = new BigDecimal(amount);
+        amountBD.setScale(TAX_POINT, TAX_ROUNDING_MODE);
+        return amountBD;
     }
     public static void main(String[] args) {
         System.out.println(getTaxAmount("16.00%", "311"));
