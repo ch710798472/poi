@@ -6,12 +6,21 @@ package com.test.excel.domain;
  * @create 2018-05-12
  **/
 public class ConfigDO extends BaseDO {
+    private String itemName;
     private String itemBarCode;
     private String itemGroup;
     private String itemTaxCode;
     private String itemTax;
     private String itemUnit;
     private String itemType;
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
 
     public String getItemBarCode() {
         return itemBarCode;

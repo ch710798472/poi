@@ -1,6 +1,7 @@
 package com.test.excel.domain;
 
 import com.google.common.collect.Maps;
+import org.springframework.util.CollectionUtils;
 
 import java.io.InputStream;
 import java.util.List;
@@ -59,6 +60,13 @@ public class RequestExc<B, M, T> {
 
     public Map<String, Object> getParams() {
         return params;
+    }
+
+    public Object getParam(String key) {
+        if (CollectionUtils.isEmpty(params)) {
+            return null;
+        }
+        return params.get(key);
     }
 
     public void addParams(String k, Object o) {

@@ -3,9 +3,8 @@ package com.test.excel.biz;
 import com.alibaba.fastjson.JSON;
 import com.ch.test.poi.util.POIUtils;
 import com.google.common.collect.Lists;
-import com.test.excel.constans.BaseColNameEnum;
-import com.test.excel.constans.ConfigColNameEnum;
-import com.test.excel.constans.TargetColNameEnum;
+import com.google.common.collect.Maps;
+import com.test.excel.constans.*;
 import com.test.excel.domain.*;
 import com.test.excel.process.AbstractProcess;
 import com.test.excel.util.FileUtils;
@@ -23,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author banmo
@@ -40,17 +40,20 @@ public class ConfigExcelProcess extends AbstractProcess {
 
     @Override
     public RequestExc buildRequest() {
-        RequestExc<ConfigDO, BaseDO, BaseDO> request = new RequestExc();
-        List<ConfigDO> base = Lists.newArrayList();
+        RequestExc<TransItemDO, BaseDO, BaseDO> request = new RequestExc();
+        List<TransItemDO> base = Lists.newArrayList();
         request.setBase(base);
+        Map<String, Object> params = Maps.newHashMap();
+        List<TransItemDO> errorLine = Lists.newArrayList();
+        request.addParams(RequestConstants.ERROR_LINE, errorLine);
         return request;
     }
 
     @Override
     public void upload(RequestExc request) {
-        List<ConfigDO> list = null;
+        List<TransItemDO> list = null;
         try {
-            list = POIUtils.convert2List(request.getFis(), ConfigDO.class, ConfigColNameEnum.getConfigFieldMapStr(), request.getFileName());
+            list = POIUtils.convert2List(request.getFis(), TransItemDO.class, TransColNameEnum.getTransFieldMapStr(), request.getFileName());
         } catch (Exception e) {
             logger.error(ExceptionUtils.getStackTrace(e));
         }
@@ -59,7 +62,7 @@ public class ConfigExcelProcess extends AbstractProcess {
 
     @Override
     public void transfor(RequestExc request) {
-        List<ConfigDO> list = request.getBase();
+        List<TransItemDO> list = request.getBase();
         if (CollectionUtils.isEmpty(list)) {
             return;
         }

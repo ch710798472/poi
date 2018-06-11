@@ -3,6 +3,7 @@ package com.test.excel.util;
 import com.google.common.collect.Maps;
 import com.test.excel.domain.ConfigDO;
 import com.test.excel.domain.ItemMapDO;
+import com.test.excel.domain.TransItemDO;
 
 import java.util.Map;
 import java.util.Optional;
@@ -12,13 +13,13 @@ import java.util.Optional;
  * @create 2018-05-16
  **/
 public class ItemGHMapUtils {
-    private  Map<String, ConfigDO> configDOMap = Maps.newHashMap();
+    private  Map<String, TransItemDO> configDOMap = Maps.newHashMap();
 
-    public  ConfigDO getConfigDO(String key) {
+    public  TransItemDO getConfigDO(String key) {
         return Optional.ofNullable(configDOMap.get(key)).orElse(null);
     }
 
-    public void putConfigDO(String key, ConfigDO o) {
+    public void putConfigDO(String key, TransItemDO o) {
         if (null == key || null == o) {
             return;
         }

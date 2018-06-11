@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ch.test.poi.util.POIUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.test.excel.constans.RequestConstants;
 import com.test.excel.domain.*;
 import com.test.excel.util.FileUtils;
 import com.test.excel.constans.BaseColNameEnum;
@@ -93,7 +94,7 @@ public class TransforExcelProcess extends AbstractProcess {
             return;
         }
         baseItemDOS.forEach(baseItemDO -> {
-            transItemDOS.add(transforBuildTransItemDO(baseItemDO));
+            transItemDOS.add(transforBuildTransItemDO(baseItemDO, request));
         });
 
         //数据透视
@@ -179,7 +180,7 @@ public class TransforExcelProcess extends AbstractProcess {
             List<TransItemDO> l = (List<TransItemDO>)request.getSplitTmp().get(i);
             List<TargetItemDO> result = Lists.newArrayList();
             for (int j = 0; j < l.size(); j++) {
-                result.add(downloadTransfor(l.get(j), j + 1));
+                result.add(downloadTransfor(l.get(j), j + 1, request));
             }
 
             if (CollectionUtils.isEmpty(result)) {
@@ -191,7 +192,7 @@ public class TransforExcelProcess extends AbstractProcess {
         }
     }
 
-    private TargetItemDO downloadTransfor(TransItemDO tmp, int i) {
+    private TargetItemDO downloadTransfor(TransItemDO tmp, int i, RequestExc request) {
         TargetItemDO targetItemDO = new TargetItemDO();
         targetItemDO.setItemId(i + "");
         targetItemDO.setItemName(tmp.getItemName());
@@ -207,18 +208,19 @@ public class TransforExcelProcess extends AbstractProcess {
         targetItemDO.setItemTaxCode(tmp.getItemTaxCode());
         targetItemDO.setItemDiscountCode("0");
         targetItemDO.setItemGasFlag("0");
-        fixField(tmp, targetItemDO);
+        fixField(tmp, targetItemDO, request);
 
         return targetItemDO;
     }
 
-    private void fixField(TransItemDO tmp, TargetItemDO targetItemDO) {
+    private void fixField(TransItemDO tmp, TargetItemDO targetItemDO, RequestExc request) {
 
-        ConfigDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(tmp.getItemBarCode()));
+        TransItemDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(tmp.getItemBarCode()));
         if (null == configDO) {
             logText.append("itemName=").append(tmp.getItemName()).append("itemBarCode=").append(
                 tmp.getItemBarCode() + "\r\n");
             logger.error("itemName={},itemBarCode={}", tmp.getItemName(), tmp.getItemBarCode());
+            FileUtils.addErrorLine(request, tmp);
             return;
         }
         targetItemDO.setItemType(StringUtils.isBlank(tmp.getItemType()) ? configDO.getItemType() : tmp.getItemType());
@@ -244,7 +246,7 @@ public class TransforExcelProcess extends AbstractProcess {
         }
     }
 
-    private TransItemDO transforBuildTransItemDO(BaseItemDO baseItemDO) {
+    private TransItemDO transforBuildTransItemDO(BaseItemDO baseItemDO, RequestExc request) {
         TransItemDO transItemDO = new TransItemDO();
         transItemDO.setItemName(baseItemDO.getItemName());
         transItemDO.setItemBarCode(baseItemDO.getItemBarCode());
@@ -263,11 +265,12 @@ public class TransforExcelProcess extends AbstractProcess {
         transItemDO.setItemPriceWithoutTax(
             TaxUtils.getItemPriceWithoutTax(transItemDO.getItemAmountWithoutTax(), baseItemDO.getItemNum()));
 
-        ConfigDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(transItemDO.getItemBarCode()));
+        TransItemDO configDO = itemGHMapUtils.getConfigDO(ItemGHMapUtils.fixedBarCode(transItemDO.getItemBarCode()));
         if (null == configDO) {
             logText.append("itemName=").append(baseItemDO.getItemName()).append("itemBarCode=").append(
                 baseItemDO.getItemBarCode() + "\r\n");
             logger.error("itemName={},itemBarCode={}", baseItemDO.getItemName(), baseItemDO.getItemBarCode());
+            FileUtils.addErrorLine(request, transItemDO);
             return null;
         }
         transItemDO.setItemTax("16%");
@@ -312,7 +315,7 @@ public class TransforExcelProcess extends AbstractProcess {
         String msg = "";
         msg += "总金额：" + amountTotal + "，总税额：" + taxTotal + "，总不含税金额：" + amountWithoutTaxTotal + "\r\n";
         msgList.add(msg);
-        request.addParams("splitMsg", NuoNuoStringUtils.getLabelString(msgList));
+        request.addParams(RequestConstants.SPLIT_MSG, NuoNuoStringUtils.getLabelString(msgList));
 
         List<BaseItemDO> base = request.getBase();
         String baseMsg = "";
@@ -338,6 +341,6 @@ public class TransforExcelProcess extends AbstractProcess {
         }
         checkMsg += "\r\n";
 
-        request.addParams("baseMsg", baseMsg + checkMsg);
+        request.addParams(RequestConstants.BASE_MSG, baseMsg + checkMsg);
     }
 }

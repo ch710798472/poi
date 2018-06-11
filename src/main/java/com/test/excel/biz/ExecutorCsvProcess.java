@@ -7,6 +7,7 @@ import com.test.excel.domain.BaseDO;
 import com.test.excel.domain.ConfigDO;
 import com.test.excel.domain.RequestExc;
 import com.test.excel.process.AbstractProcess;
+import com.test.excel.util.FileUtils;
 import com.test.excel.util.ItemGHMapUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -39,8 +40,8 @@ public class ExecutorCsvProcess extends AbstractProcess {
         BufferedWriter out = null;
         BufferedReader in;
         try {
-            in = new BufferedReader(new InputStreamReader(request.getFis(), "gb2312"));
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(request.getDownloadDir() + "/new_" +request.getFileName()), "gb2312"));
+            in = new BufferedReader(new InputStreamReader(request.getFis(), FileUtils.FILE_CHAR));
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(request.getDownloadDir() + FileUtils.FILE_DIR + FileUtils.NEW_FILE +request.getFileName()), FileUtils.FILE_CHAR));
             String str = null;
             while ((str = in.readLine()) != null) {
                 str = str.replaceAll("\"","");

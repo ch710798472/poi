@@ -1,16 +1,20 @@
 package com.test.excel.util;
 
+import com.ch.test.poi.util.POIUtils;
 import com.csvreader.CsvReader;
 import com.google.common.collect.Lists;
 import com.test.excel.constans.BaseColNameEnum;
-import com.test.excel.domain.BaseItemDO;
-import com.test.excel.domain.RequestExc;
+import com.test.excel.constans.RequestConstants;
+import com.test.excel.constans.TargetColNameEnum;
+import com.test.excel.constans.TransColNameEnum;
+import com.test.excel.domain.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -20,6 +24,10 @@ import java.util.List;
  **/
 public class FileUtils {
     private static final Logger logger = LoggerFactory.getLogger(FileUtils.class);
+    public static final String NEW_FILE = "new_";
+    public static final String FILE_CHAR = "gb2312";
+    public static final String FILE_DIR = "/";
+
     public static String getFileType(String file) {
         if (StringUtils.isBlank(file)) {
             return null;
@@ -73,5 +81,66 @@ public class FileUtils {
         record.setItemBuyTax(csvReader.get(BaseColNameEnum.ITEM_BUY_TAX.getName()));
         record.setItemSalesTax(csvReader.get(BaseColNameEnum.ITEM_SALES_TAX.getName()));
         return record;
+    }
+
+    public static void addErrorLine(RequestExc request, TransItemDO tmp){
+        List<TransItemDO> errorLine = (List<TransItemDO>)request.getParam(RequestConstants.ERROR_LINE);
+        if (CollectionUtils.isEmpty(errorLine)) {
+            errorLine = Lists.newArrayList();
+        }
+        errorLine.add(tmp);
+        request.addParams(RequestConstants.ERROR_LINE, errorLine);
+    }
+
+    public static List<TransItemDO> getErrorLine(RequestExc request){
+        List<TransItemDO> errorLine = (List<TransItemDO>)request.getParam(RequestConstants.ERROR_LINE);
+        if (CollectionUtils.isEmpty(errorLine)) {
+            errorLine = Lists.newArrayList();
+        }
+        return errorLine;
+    }
+
+    public static void saveFiles(List<TransItemDO> tmp, File file) {
+        try {
+            byte[] outputByte = POIUtils.convert2Excel(tmp, TransItemDO.class,
+                TransColNameEnum.getTransFieldMapStr());
+            if (file != null) {
+                InputStream fi = new ByteArrayInputStream(outputByte);
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                byte[] bytes = new byte[1024];
+                int byteLength = 0;
+                while ((byteLength = fi.read(bytes)) != -1) {
+                    fileOutputStream.write(bytes, 0, byteLength);
+                }
+                fileOutputStream.close();
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
+        }
+    }
+
+    public static TransItemDO transforBuildTransItemDO(TransItemDO configDO) {
+        TransItemDO transItemDO = new TransItemDO();
+        transItemDO.setItemName(configDO.getItemName());
+        transItemDO.setItemBarCode(configDO.getItemBarCode());
+        transItemDO.setItemGroup(configDO.getItemGroup());
+        transItemDO.setItemTaxCode(configDO.getItemTaxCode());
+        transItemDO.setItemTax("16%");
+        transItemDO.setItemType(configDO.getItemType());
+        transItemDO.setItemUnit(configDO.getItemUnit());
+
+        //非主要
+        transItemDO.setItemNum(configDO.getItemNum());
+        transItemDO.setItemPriceWithoutTax(configDO.getItemPriceWithoutTax());
+        transItemDO.setItemPrice(configDO.getItemPrice());
+        transItemDO.setItemAmountWithoutTax(configDO.getItemAmountWithoutTax());
+        transItemDO.setItemAmount(configDO.getItemAmount());
+        transItemDO.setItemTaxAmount(configDO.getItemTaxAmount());
+        if (StringUtils.isNotBlank(configDO.getItemTax())) {
+            transItemDO.setItemTax(configDO.getItemTax());
+        }
+        transItemDO.setItemBuyTax(configDO.getItemBuyTax());
+        transItemDO.setItemSalesTax(configDO.getItemSalesTax());
+        return transItemDO;
     }
 }

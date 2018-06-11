@@ -4,8 +4,9 @@ import com.test.excel.biz.ConfigExcelProcess;
 import com.test.excel.biz.ExecutorCsvProcess;
 import com.test.excel.biz.TransforExcelProcess;
 import com.test.excel.config.BeanConfig;
-import com.test.excel.domain.ItemMapDO;
-import com.test.excel.domain.RequestExc;
+import com.test.excel.constans.RequestConstants;
+import com.test.excel.domain.*;
+import com.test.excel.util.FileUtils;
 import com.test.excel.util.ItemGHMapUtils;
 import de.felixroske.jfxsupport.AbstractJavaFxApplicationSupport;
 import javafx.application.Application;
@@ -28,8 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import java.io.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author banmo
@@ -94,6 +97,11 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
                     } catch (Exception e) {
                         uploadProcess.setText(transforExcelProcess.getLogText().append(ExceptionUtils.getStackTrace(e)).toString());
                         logger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
+                        List<TransItemDO> configDOS = (List<TransItemDO>)configRequest.getBase();
+                        List<TransItemDO> transItemDOList = configDOS.stream().map(configDO -> FileUtils.transforBuildTransItemDO(configDO)).collect(
+                            Collectors.toList());
+                        transItemDOList.addAll(FileUtils.getErrorLine(transforRequest));
+                        FileUtils.saveFiles(transItemDOList,new File( configRequest.getDownloadDir() + FileUtils.FILE_DIR + FileUtils.NEW_FILE +configRequest.getFileName()));
                     }
                 }
                 System.out.println(file);
@@ -131,6 +139,7 @@ public class MainStageController extends AbstractJavaFxApplicationSupport {
                         BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
                         configRequest.setFis(fis);
                         configRequest.setFileName(file.getName());
+                        configRequest.setDownloadDir(file.getParent());
                         configExcelProcess.execute(configRequest);
                         uploadProcess.setText("上传配置信息成功，万事俱备只欠东风了，加油+++");
                     } catch (Exception e) {

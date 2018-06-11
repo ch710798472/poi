@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
  **/
 public enum ConfigColNameEnum {
     //商品条码,分组,税收分类编码
+    ITEM_NAME("货物名称或者应税劳务名称","itemName"),
     ITEM_BAR_CODE("商品条码","itemBarCode"),
     ITEM_GROUP("分组","itemGroup"),
     ITEM_TAX_CODE("税收分类编码","itemTaxCode"),
